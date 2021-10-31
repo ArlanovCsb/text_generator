@@ -1,8 +1,13 @@
-from nltk.tokenize import regexp_tokenize
-from nltk.probability import FreqDist
 from pathlib import Path
+from typing import List
+
+from nltk.tokenize import regexp_tokenize
 
 DATA_DIR_NAME = 'data'
+
+
+def get_bigrams(corpus: List) -> List:
+    return [(corpus[i], corpus[i + 1]) for i in range(len(corpus) - 1)]
 
 
 def main():
@@ -10,21 +15,19 @@ def main():
     file_name = data_path/input()
     with open(file_name, 'r', encoding='utf-8') as f:
         tokens = regexp_tokenize(f.read(), r'\S+')
-    freq_dist = FreqDist(token for token in tokens)
-    print('Corpus statistics')
-    print(f'All tokens: {len(tokens)}')
-    print(f'Unique tokens: {len(freq_dist)}')
+    bigrams = get_bigrams(tokens)
+    print(f'Number of bigrams: {len(bigrams)}')
     while True:
         idx = input()
         if idx == 'exit':
             break
         try:
-            print(tokens[int(idx)])
+            print(f'Head: {bigrams[int(idx)][0]}\tTail: {bigrams[int(idx)][1]}')
         except ValueError:
             print('Type Error. Please input an integer.')
             continue
         except IndexError:
-            print('Index Error. Please input an integer that is in the range of the corpus.')
+            print('Index Error. Please input a value that is not greater than the number of all bigrams.')
             continue
 
 
