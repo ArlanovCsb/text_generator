@@ -1,15 +1,14 @@
 from collections import defaultdict, Counter
 from pathlib import Path
 import random
+import re
 from typing import List, Dict
 
 from nltk.tokenize import regexp_tokenize
 
 DATA_DIR_NAME = 'data'
-NUM_WORDS = 10
+MIN_NUM_WORDS = 5
 NUM_SENTENCES = 10
-RANDOM_SEED = 23
-random.seed(RANDOM_SEED)
 
 
 def get_bigrams(corpus: List) -> List:
@@ -34,15 +33,31 @@ def main():
         tokens = regexp_tokenize(f.read(), r'\S+')
     bigrams = get_bigrams(tokens)
     m_chain = get_markov_chain(bigrams)
-    head = random.choice(list(m_chain.keys()))
+    while True:
+        head = random.choice(list(m_chain.keys()))
+        if re.match('[A-Z]', head) and not re.search(r'\S+[.!?]$', head):
+            break
     sentence = [head]
-    for _ in range(NUM_WORDS * NUM_SENTENCES - 1):
+    sentence_cnt = 0
+    while True:
         word = get_word_from_chain(m_chain[head])
+        sen_end_word_search = re.search(r'\S+[.!?]$', word)
+        if len(sentence) < MIN_NUM_WORDS and sen_end_word_search:
+            continue
         sentence.append(word)
-        head = word
-        if len(sentence) == 10:
+        if len(sentence) >= MIN_NUM_WORDS and sen_end_word_search:
             print(' '.join(sentence))
             sentence.clear()
+            sentence_cnt += 1
+            while True:
+                head = get_word_from_chain(m_chain[word])
+                if re.match('[A-Z]', head) and not re.search(r'\S+[.!?]$', head):
+                    sentence.append(head)
+                    break
+        else:
+            head = word
+        if sentence_cnt == NUM_SENTENCES:
+            return
 
 
 if __name__ == '__main__':
